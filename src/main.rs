@@ -60,7 +60,7 @@ async fn main() {
     .route("/airdrop/:pubkey", get(airdrop_handler))
     .route("/details/:pubkey", get(details_handler));
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     //Listen locally on port 8080
     
     println!("Server is running on http://{}", addr);
