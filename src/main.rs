@@ -24,18 +24,29 @@ async fn balance_handler(Path(pubkey): Path<String>) -> Json<serde_json::Value> 
     }))
 }
 
-async fn airdrop_handler(path(pubkey:String): Path<String>) -> Json<serde_json::Value> {
+async fn airdrop_handler(Path(pubkey): Path<String>) -> Json<serde_json::Value> {
     let client = RpcClient::new("https://api.devnet.solana.com".to_string());
     let pubkey = pubkey.parse::<Pubkey>().unwrap(); // or handle error
     let signature = client.request_airdrop(&pubkey, 1000000000).unwrap();
 
     Json(json!({
         "status": "success",
-        "signature": "<tx_signature>"
-      }
-      ))
+        "signature": signature.to_string()
+      }))
 }
 
+async fn details_handler(Path(pubkey): Path<String>) -> Json<serde_json::Value> {
+    let client = RpcClient::new("https://api.devnet.solana.com".to_string());
+    let pubkey = pubkey.parse::<Pubkey>().unwrap(); // or handle error
+    let balance = client.get_balance(&pubkey).unwrap();
+    let sol = balance as f64 / 1_000_000_000.0;
+
+    Json(json!({
+        "balance": sol,
+        "pubkey": pubkey.to_string(),
+        
+    }))
+}
 
 
 #[tokio::main]
@@ -46,7 +57,8 @@ async fn main() {
     .route("/", get(root_handler))
     //app ko ek new route banaya, an empty route
     .route("/balance/:pubkey", get(balance_handler))
-    .route("/airdrop/:pubkey", get(airdrop_handler));
+    .route("/airdrop/:pubkey", get(airdrop_handler))
+    .route("/details/:pubkey", get(details_handler));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
     //Listen locally on port 8080
